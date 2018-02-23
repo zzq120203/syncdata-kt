@@ -36,7 +36,7 @@ class EngineInterface : WorkHandler<MetaData>, LifecycleAware {
     }
 
     override fun onShutdown() {
-        Thread.currentThread().name = oldName!!
+        Thread.currentThread().name = oldName ?: "OldEngineInterface"
     }
 
     @Throws(Exception::class)
@@ -44,13 +44,7 @@ class EngineInterface : WorkHandler<MetaData>, LifecycleAware {
         try {
             val msg = Message()
             msg.topic = config().topic
-            when (mmd.type) {
-                "a" -> msg.tags = "a"
-                "v" -> msg.tags = "v"
-                "i" -> msg.tags = "i"
-                "t" -> msg.tags = "t"
-                "o" -> msg.tags = "o"
-            }
+            msg.tags = mmd.type
 
             val se = SendData()
             val jsonObj = parser.parse(mmd.value!!).asJsonObject
