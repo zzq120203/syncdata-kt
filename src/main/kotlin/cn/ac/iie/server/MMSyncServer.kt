@@ -41,12 +41,12 @@ object MMSyncServer {
             newClient.init(config().newClientUrl, "TEST")
 
 
-            var disruptor = Disruptor(EventFactory<MetaData> { MetaData() }, 512, DaemonThreadFactory.INSTANCE, ProducerType.MULTI, BlockingWaitStrategy())
+            val disruptor = Disruptor(EventFactory<MetaData> { MetaData() }, 512, DaemonThreadFactory.INSTANCE, ProducerType.MULTI, BlockingWaitStrategy())
             disruptor.handleEventsWithWorkerPool(DataSyncHandler()).handleEventsWithWorkerPool(EngineInterface())
 
-            var ringBuffer = disruptor.start()
+            val ringBuffer = disruptor.start()
 
-            val thread = Thread(GetDataInfo(ringBuffer!!), "MainMMKeyThread")
+            val thread = Thread(GetDataInfo(ringBuffer), "MainMMKeyThread")
             thread.start()
 
             Runtime.getRuntime().addShutdownHook(Thread {

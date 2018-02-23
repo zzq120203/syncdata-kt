@@ -36,8 +36,8 @@ class DataSyncHandler : WorkHandler<MetaData>, LifecycleAware {
     @Throws(Exception::class)
     override fun onEvent(mmd: MetaData) {
         try {
-            if (mmd.key != null) {
-                var outContent: ByteArray? = MMSyncServer.mainClient.get(mmd.key!!)
+            mmd.key?.let {
+                var outContent: ByteArray? = MMSyncServer.mainClient.get(mmd.key)
                 if (outContent == null || outContent.isEmpty()) {
                     log.error("Audio outContent:null; key:{}; value:{}", mmd.key, mmd.value)
                     return

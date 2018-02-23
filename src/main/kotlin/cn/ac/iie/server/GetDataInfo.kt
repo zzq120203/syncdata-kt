@@ -12,36 +12,30 @@ class GetDataInfo(private val ringBuffer: RingBuffer<MetaData>) : Runnable {
         var seq: Long = 0
         var mmd: MetaData
         do {
-            var jedis: Jedis? = null
+            val jedis = MMSyncServer.mainClient.pc.rpL1.resource
             try {
-                jedis = MMSyncServer.mainClient.pc.rpL1.resource ?: throw RuntimeException("jedis is null")
-                val skeys = jedis.hgetAll("ds.set")
-                if (skeys.isNotEmpty()) {
-                    log.info(" ds.set size :" + skeys.size)
-                    for ((key, value) in skeys) {
-                        try {
-                            log.debug("get key:{}; value:{}", key, value)
-                            seq = ringBuffer.next()
-                            mmd = ringBuffer.get(seq)
-                            mmd.key = key
-                            mmd.value = value
+                jedis?.let {
+                    val skeys = it.hgetAll("ds.set")
+                    if (skeys.isNotEmpty()) {
+                        log.info(" ds.set size :" + skeys.size)
+                        for ((key, value) in skeys) {
+                            try {
+                                log.debug("get key:{}; value:{}", key, value)
+                                seq = ringBuffer.next()
+                                mmd = ringBuffer.get(seq)
+                                mmd.key = key
+                                mmd.value = value
+                                mmd.type = mmd.key!![0].toString()
+                                mmd.isSilk2wav = false
 
-                            when (mmd.key!![0]) {
-                                't' -> mmd.type = "t"
-                                'i' -> mmd.type = "i"
-                                'a' -> mmd.type = "a"
-                                'v' -> mmd.type = "v"
-                                'o' -> mmd.type = "o"
+                                //hdelKey(jedis, "ds.set", key)
+                            } finally {
+                                ringBuffer.publish(seq)
                             }
-                            mmd.isSilk2wav = false
-
-                            //hdelKey(jedis, "ds.set", key)
-                        } finally {
-                            ringBuffer.publish(seq)
-                        }
-                        if (!startGetDataInfo.get()) {
-                            log.info("GetDataInfo break")
-                            break
+                            if (!startGetDataInfo.get()) {
+                                log.info("GetDataInfo break")
+                                break
+                            }
                         }
                     }
                 }

@@ -42,27 +42,29 @@ class EngineInterface : WorkHandler<MetaData>, LifecycleAware {
     @Throws(Exception::class)
     override fun onEvent(mmd: MetaData) {
         try {
-            val msg = Message()
-            msg.topic = config().topic
-            msg.tags = mmd.type
+            mmd.value?.let {
+                val msg = Message()
+                msg.topic = config().topic
+                msg.tags = mmd.type
 
-            val se = SendData()
-            val jsonObj = parser.parse(mmd.value!!).asJsonObject
-            se.table = jsonObj.get("table").asString
-            se.u_ch_id = jsonObj.get("u_ch_id").asString
-            se.m_ch_id = jsonObj.get("m_ch_id").asString
-            se.m_chat_room = jsonObj.get("m_chat_room").asString
-            se.key = mmd.key
+                val se = SendData()
+                val jsonObj = parser.parse(mmd.value).asJsonObject
+                se.table = jsonObj.get("table").asString
+                se.u_ch_id = jsonObj.get("u_ch_id").asString
+                se.m_ch_id = jsonObj.get("m_ch_id").asString
+                se.m_chat_room = jsonObj.get("m_chat_room").asString
+                se.key = mmd.key
 
-            val json = gson.toJson(se)
+                val json = gson.toJson(se)
 
-            msg.body = json.toByteArray(charset(RemotingHelper.DEFAULT_CHARSET))
+                msg.body = json.toByteArray(charset(RemotingHelper.DEFAULT_CHARSET))
 
-            messages.add(msg)
+                messages.add(msg)
 
-            if (messages.size > 10) {
-                bp.send(messages)
-                messages.clear()
+                if (messages.size > 10) {
+                    bp.send(messages)
+                    messages.clear()
+                }
             }
         } catch (e: Exception) {
             log.error(e.message)
