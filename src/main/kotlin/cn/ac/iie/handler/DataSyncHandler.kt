@@ -30,7 +30,7 @@ class DataSyncHandler : WorkHandler<MetaData>, LifecycleAware {
     }
 
     override fun onShutdown() {
-        Thread.currentThread().name = oldName!!
+        Thread.currentThread().name = oldName ?: "OldDataSyncThread"
     }
 
     @Throws(Exception::class)
@@ -38,7 +38,7 @@ class DataSyncHandler : WorkHandler<MetaData>, LifecycleAware {
         try {
             if (mmd.key != null) {
                 var outContent: ByteArray? = MMSyncServer.mainClient.get(mmd.key!!)
-                if (outContent == null || outContent.size <= 0) {
+                if (outContent == null || outContent.isEmpty()) {
                     log.error("Audio outContent:null; key:{}; value:{}", mmd.key, mmd.value)
                     return
                 }
